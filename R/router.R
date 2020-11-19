@@ -1,20 +1,61 @@
 ROUTER_UI_ID <- '_router_ui'
 
-#' Create a mapping bewtween a ui element
-#' and a server callack
+#' Attach 'router-hidden' class to single page UI content
 #'
+#' @description Covered UI types are Shiny/htmltools tags or tag lists and httml templates.
+#' In case of tag list (\code{tagList}) and html template (\code{htmlTemplate}) 'div' wrapper
+#' with 'router-hidden' class is added.
+#'
+#' @param ui Single page UI content created with proper html tags or tag list.
+#' @param path Single page path name. Attached to \code{data-path} attriubute.
+attach_attribs <- function(ui, path) {
+  if ("shiny.tag" %in% class(ui)) {
+    # make pages identification easier
+    ui$attribs$`data-path` <- path
+    ui$attribs$class <- paste("router router-hidden", ui$attribs$class)
+  }
+  if ("shiny.tag.list" %in% class(ui)) {
+    # make pages identification easier
+    container <- shiny::div(ui)
+    container$attribs$`data-path` <- path
+    container$attribs$class <- "router router-hidden"
+    ui <- container
+  }
+  ui
+}
+
+#' Create a mapping between a UI element and a server callback.
+#'
+#' @param path Bookmark id.
 #' @param ui Valid Shiny user interface.
 #' @param server Function that is called within the global server function if given
-callback_mapping <- function(ui, server = NA) {
+#' @return list with ui and server fields
+callback_mapping <- function(path, ui, server = NA) {
   server <- if (is.function(server)) {
-              server
-            } else {
-              function(input, output, session) {}
-            }
+    if ("..." %in% names(formals(server))) {
+      server
+    } else {
+      # the package requires ellipsis (...) existing for each server callback
+      formals(server) <- append(formals(server), alist(... = ))
+      server
+    }
+  } else {
+    function(input, output, session, ...) {}
+  }
   out <- list()
+  ui <- attach_attribs(ui, path)
   out[["ui"]] <- ui
   out[["server"]] <- server
   out
+}
+
+#' Internal function to get url hash with #!.
+#'
+#' @param session The current Shiny Session
+#'
+#' @return Reactive hash value.
+get_url_hash <- function(session = shiny::getDefaultReactiveDomain()) {
+  session$userData$shiny.router.url_hash()
 }
 
 #' Create single route configuration.
@@ -27,12 +68,12 @@ callback_mapping <- function(ui, server = NA) {
 #' \dontrun{
 #' route("/", shiny::tags$div(shiny::tags$span("Hello world")))
 #'
-#' route("/main", div(h1("Main page"), p("Lorem ipsum.")))
+#' route("/main", shiny::tags$div(h1("Main page"), p("Lorem ipsum.")))
 #' }
 #' @export
 route <- function(path, ui, server = NA) {
   out <- list()
-  out[[path]] <- callback_mapping(ui, server)
+  out[[path]] <- callback_mapping(path, ui, server)
   out
 }
 
@@ -42,11 +83,9 @@ route <- function(path, ui, server = NA) {
 #' @param root Main route to which all invalid routes should redirect.
 #' @param routes A routes (list).
 #'
-#' @importFrom shiny observeEvent
-#'
 #' @return Router callback.
 create_router_callback <- function(root, routes) {
-  function(input, output, session = shiny::getDefaultReactiveDomain()) {
+  function(input, output, session = shiny::getDefaultReactiveDomain(), ...) {
     # Making this a list inside a shiny::reactiveVal, instead of using a
     # shiny::reactiveValues, because it should change atomically.
     log_msg("Creating current_page reactive...")
@@ -55,15 +94,23 @@ create_router_callback <- function(root, routes) {
       query = NULL,
       unparsed = root
     ))
-    log_msg(shiny::isolate(as.character(session$userData$shiny.router.page())))
+
+    # Watch and clean hash before changing page.
+    session$userData$shiny.router.url_hash = shiny::reactiveVal("#!/")
+    shiny::observeEvent(shiny::getUrlHash() ,{
+      session$userData$shiny.router.url_hash(cleanup_hashpath(shiny::getUrlHash()))
+    })
+
+    lapply(routes, function(route) route$server(input, output, session, ...))
+
     # Watch for updates to the address bar's fragment (aka "hash"), and update
     # our router state if needed.
-    observeEvent(
+    shiny::observeEvent(
       ignoreNULL = FALSE,
       ignoreInit = FALSE,
       # Shiny uses the "onhashchange" browser method (via JQuery) to detect
       # changes to the hash
-      eventExpr = c(shiny::getUrlHash(session), session$clientData$url_search),
+      eventExpr = c(get_url_hash(session), session$clientData$url_search),
       handlerExpr = {
         log_msg("hashchange observer triggered!")
         new_hash = shiny::getUrlHash(session)
@@ -78,18 +125,13 @@ create_router_callback <- function(root, routes) {
         parsed$path <- ifelse(parsed$path == "", root, parsed$path)
 
         if (!valid_path(routes, parsed$path)) {
-
           log_msg("Invalid path sent to observer")
           # If it's not a recognized path, then go to default 404 page.
           change_page(PAGE_404_ROUTE, mode = "replace")
-
         } else if (new_hash != cleaned_hash) {
-
           log_msg("Cleaning up hashpath in URL...")
           change_page(cleaned_hash, mode = "replace")
-
         } else {
-
           log_msg("Path recognized!")
           # If it's a recognized path, then update the display to match.
           # TODO: Validation of routes that have mandatory query params?
@@ -99,77 +141,86 @@ create_router_callback <- function(root, routes) {
             query = parsed$query,
             unparsed = new_hash
           ))
-
         }
       }
     )
 
-    # Switch the displayed page, if the path changes.
-    output[[ROUTER_UI_ID]] <- shiny::renderUI({
-      log_msg("shiny.router main output. path: ", session$userData$shiny.router.page()$path)
-      routes[[session$userData$shiny.router.page()$path]][["server"]](input, output, session)
-      routes[[session$userData$shiny.router.page()$path]][["ui"]]
+    shiny::observeEvent(session$userData$shiny.router.page(), {
+      page_path <- session$userData$shiny.router.page()$path
+      log_msg("shiny.router main output. path: ", page_path)
+      session$sendCustomMessage("switch-ui", page_path)
     })
   }
 }
 
-#' Creates router. Returned callback needs to be called within Shiny server code.
+#' Create router pages server callback
+#'
+#' @param router Router pages object. See \link{make_router}.
+router_server <- function(router) {
+  create_router_callback(router$root, router$routes)
+}
+
+#' Creates router UI
+#'
+#' @param router Router pages object. See \link{make_router}.
+#'
+#' @return list with shiny tags that adds "router-page-wrapper" div and embeds
+#' router javascript script.
+router_ui <- function(router) {
+  shiny::addResourcePath(
+    "shiny.router",
+    system.file("www", package = "shiny.router")
+  )
+  js_file <- file.path("shiny.router", "shiny.router.js")
+  css_file <- file.path("shiny.router", "shiny.router.css")
+
+  list(
+    shiny::singleton(
+      shiny::withTags(
+        shiny::tags$head(
+          shiny::tags$script(type = "text/javascript", src = js_file),
+          shiny::tags$link(rel = "stylesheet", href = css_file)
+        )
+      )
+    ),
+    shiny::tags$div(
+      id = "router-page-wrapper",
+      lapply(router$routes, function(route) route$ui)
+    )
+  )
+}
+
+#' Creates router.
+#'
+#' Returned callback needs to be called within Shiny server code.
 #'
 #' @param default Main route to which all invalid routes should redirect.
-#' @param ... All other routes defined with \code{shiny.router::route} function.
+#' @param ... All other routes defined with shiny.router::route function.
+#' @param page_404 Styling of page when wrong bookmark is open. See \link{page404}.
 #' @return Shiny router callback that should be run in server code with Shiny input and output lists.
 #'
 #' @examples
 #' \dontrun{
 #' router <- make_router(
 #'   route("/", root_page),
-#'   route("/other", other_page)
+#'   route("/other", other_page),
+#'   page_404 = page404(
+#'     message404 = "Please check if you passed correct bookmark name!")
 #' )
 #' }
 #' @export
-make_router <- function(default, ...) {
+make_router <- function(default, ..., page_404 = page404()) {
   routes <- c(default, ...)
   root <- names(default)[1]
   if (! PAGE_404_ROUTE %in% names(routes) )
-    routes <- c(routes, route(PAGE_404_ROUTE, page404()))
-  create_router_callback(root, routes)
+    routes <- c(routes, route(PAGE_404_ROUTE, page_404))
+  router <- list(root = root, routes = routes)
+  list(ui = router_ui(router), server = router_server(router))
 }
 
-#' Creates an output for router. This configures client side.
-#' Call it in your UI Shiny code. In this output ui is going to be rendered
-#' according to current routing.
+#' Convenience function to retrieve just the "page" part of the input.
 #'
-#' @return Shiny tags that configure router and build reactive but hidden input _location.
-#'
-#' @import shiny
-#' @examples
-#' \dontrun{
-#' ui <- shinyUI(fluidPage(
-#'   router_ui()
-#' ))
-#' }
-#' @export
-router_ui <- function() {
-  shiny::addResourcePath(
-    "shiny.router",
-    system.file("www", package = "shiny.router")
-  )
-  jsFile <- file.path("shiny.router", "shiny.router.js")
-
-  list(
-    shiny::singleton(
-      shiny::withTags(
-        tags$head(
-          tags$script(type = "text/javascript", src = jsFile)
-        )
-      )
-    ),
-    shiny::uiOutput(ROUTER_UI_ID)
-  )
-}
-
-#' Convenience function to retrieve just the "page" part of the input. This
-#' corresponds to what might be called the "path" component of a URL, except
+#' This corresponds to what might be called the "path" component of a URL, except
 #' that we're using URLs with hashes before the path & query (e.g.:
 #' http://www.example.com/#!/virtual/path?and=params)
 #' @param session The current Shiny Session

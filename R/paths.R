@@ -12,9 +12,7 @@ valid_path <- function(routes, path) {
 #' Formats a URL fragment into a hashpath starting with "#!/"
 #'
 #' @param hashpath character with hash path
-#'
-#' @example
-#' cleanup_hashpath("/abc")
+#' @return character with formatted hashpath
 cleanup_hashpath <- function(hashpath) {
   hashpath = hashpath[1]
   # Already correctly formatted.
@@ -40,13 +38,12 @@ cleanup_hashpath <- function(hashpath) {
 #'
 #' @param path character with link path
 #' @return stripped link
-#' @example
-#' extract_link_name("#!/abc")
 extract_link_name <- function(path) {
   sub("#!/", "", cleanup_hashpath(path))
 }
 
 #' Route link
+#'
 #' Adds /#!/ prefix to link.
 #'
 #' @param path character with path
@@ -55,7 +52,7 @@ extract_link_name <- function(path) {
 #' @examples
 #' route_link("abc") # /#!/abc
 route_link <- function(path) {
-  paste0("/", cleanup_hashpath(path))
+  paste0("./", cleanup_hashpath(path))
 }
 
 ########################### To export
@@ -72,6 +69,9 @@ route_link <- function(path) {
 #' }
 #' @details
 #' \code{parse_url_path} allows parsing paramaters lists from url. See more in examples.
+#'
+#' Note that having query string appear before \code{#!} may cause browser to refresh
+#' and thus reset Shiny session.
 #' @export
 #' @examples
 #' parse_url_path("?a=1&b=foo")
@@ -79,18 +79,31 @@ route_link <- function(path) {
 #' parse_url_path("?a=1&b[1]=foo&b[2]=bar/#!/other_page")
 #' parse_url_path("www.foo.bar/#!/other_page")
 #' parse_url_path("www.foo.bar?a=1&b[1]=foo&b[2]=bar/#!/other")
+#' parse_url_path("#!/?a=1&b[1]=foo&b[2]=bar")
+#' parse_url_path("#!/other_page?a=1&b[1]=foo&b[2]=bar")
+#' parse_url_path("www.foo.bar/#!/other?a=1&b[1]=foo&b[2]=bar")
 parse_url_path <- function(url_path) {
-  url_has_query <- grepl("?", url_path, fixed = TRUE)
-  url_has_hash <- grepl("#", url_path, fixed = TRUE)
+  url_query_pos <- gregexpr("?", url_path, fixed = TRUE)[[1]][1]
+  url_hash_pos <- gregexpr("#", url_path, fixed = TRUE)[[1]][1]
+  url_has_query <- url_query_pos[1] > -1
+  url_has_hash <- url_hash_pos[1] > -1
   extracted_url_parts <- sub("^/|/$", "", strsplit(url_path, split = "\\?|#!|#")[[1]])
   path <- ""
+  query <- NULL
 
-  if (url_has_query) {
-    query <- extracted_url_parts[2]
-    path <- if (url_has_hash) extracted_url_parts[3] else path
+  if (url_has_query & url_has_hash) {
+    # Query string may appear before or after hash
+    if(url_query_pos < url_hash_pos) {
+      query <- extracted_url_parts[2]
+      path <- extracted_url_parts[3]
+    } else {
+      query <- extracted_url_parts[3]
+      path <- extracted_url_parts[2]
+    }
+  } else if (!url_has_query & url_has_hash) {
+    path <- extracted_url_parts[2]
   } else {
-    query <- NULL
-    path <- if (url_has_hash) extracted_url_parts[2] else path
+    query <- extracted_url_parts[2]
   }
 
   if (is.na(path)) {
@@ -108,6 +121,8 @@ parse_url_path <- function(url_path) {
   parsed
 }
 
+#' Get Query Parameters
+#'
 #' Convenience function to retrieve any params that were part of the requested
 #' page. The param values returned come from "httr::parse_url()"
 #' @param field If provided, retrieve only a param with this name. (Otherwise,
@@ -119,11 +134,9 @@ parse_url_path <- function(url_path) {
 #' @export
 get_query_param <- function(field = NULL, session = shiny::getDefaultReactiveDomain()) {
   log_msg("Trying to fetch field '", field)
-
   if (is.null(session$userData$shiny.router.page()$query)) {
     return(NULL)
   }
-
   if (missing(field)) {
     return(
       # Return a list of all the query params

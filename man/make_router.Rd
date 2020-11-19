@@ -2,26 +2,30 @@
 % Please edit documentation in R/router.R
 \name{make_router}
 \alias{make_router}
-\title{Creates router. Returned callback needs to be called within Shiny server code.}
+\title{Creates router.}
 \usage{
-make_router(default, ...)
+make_router(default, ..., page_404 = page404())
 }
 \arguments{
 \item{default}{Main route to which all invalid routes should redirect.}
 
-\item{...}{All other routes defined with \code{shiny.router::route} function.}
+\item{...}{All other routes defined with shiny.router::route function.}
+
+\item{page_404}{Styling of page when wrong bookmark is open. See \link{page404}.}
 }
 \value{
 Shiny router callback that should be run in server code with Shiny input and output lists.
 }
 \description{
-Creates router. Returned callback needs to be called within Shiny server code.
+Returned callback needs to be called within Shiny server code.
 }
 \examples{
 \dontrun{
 router <- make_router(
   route("/", root_page),
-  route("/other", other_page)
+  route("/other", other_page),
+  page_404 = page404(
+    message404 = "Please check if you passed correct bookmark name!")
 )
 }
 }
