@@ -1,7 +1,7 @@
 Package: shiny.router
 Type: Package
 Title: Basic Routing for Shiny Web Applications
-Version: 0.2.1
+Version: 0.2.2
 Authors@R: c(person("Filip", "Stachura",
                     email = "filip@appsilon.com",
                     role = c("aut")),
@@ -23,11 +23,11 @@ Imports: magrittr, shiny, htmltools
 RoxygenNote: 7.1.1
 Suggests: testthat, covr
 NeedsCompilation: no
-Packaged: 2021-01-15 13:41:23 UTC; dominik
+Packaged: 2021-01-20 09:31:31 UTC; dominik
 Author: Filip Stachura [aut],
   Dominik Krzemiński [cre, aut],
   Krystian Igras [aut],
   Appsilon [cph]
 Maintainer: Dominik Krzemiński <dominik@appsilon.com>
 Repository: CRAN
-Date/Publication: 2021-01-15 16:00:02 UTC
+Date/Publication: 2021-01-20 11:40:03 UTC

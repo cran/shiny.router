@@ -6,5 +6,4 @@
 #' @param pkgname package name
 #'
 .onLoad <- function(libname, pkgname){
-
 }
