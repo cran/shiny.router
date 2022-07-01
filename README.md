@@ -8,7 +8,7 @@ shiny.router
 
 <!-- badges: start -->
 ![R-CMD-check](https://github.com/Appsilon/shiny.router/workflows/R-CMD-check/badge.svg)
-[![codecov](https://codecov.io/gh/Appsilon/shiny.router/branch/master/graph/badge.svg)](https://codecov.io/gh/Appsilon/shiny.router)
+[![codecov](https://codecov.io/gh/Appsilon/shiny.router/branch/master/graph/badge.svg)](https://app.codecov.io/gh/Appsilon/shiny.router)
 [![cranlogs](https://cranlogs.r-pkg.org/badges/shiny.router)](https://CRAN.R-project.org/package=shiny.router)
 [![total](https://cranlogs.r-pkg.org/badges/grand-total/shiny.router)](https://CRAN.R-project.org/package=shiny.router)
 <!-- badges: end -->
@@ -29,7 +29,7 @@ Now it's possible to recreate a state of your app, by providing a specific URL, 
 Basic tutorial article is available on [Appsilon's blog](https://appsilon.com/shiny-router-package/).
 
 
-<h4><a href="https://demo.appsilon.ai/apps/router2/" target="_blank">Live demo</a> </h4>
+<h4><a href="https://legacy.appsilon.com/apps/router2" target="_blank">Live demo</a> </h4>
 
 
 Source code
@@ -130,4 +130,4 @@ Appsilon
 <img src="https://avatars0.githubusercontent.com/u/6096772" align="right" alt="" width="6%" />
 
 Appsilon is the **Full Service Certified RStudio Partner**. Learn more
-at [appsilon.com](https://appsilon.com). Get in touch `dev@appsilon.com`.
+at [appsilon.com](https://appsilon.com). Get in touch `support+opensource@appsilon.com`.

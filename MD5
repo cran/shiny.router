@@ -1,12 +1,12 @@
-825ad2e87ae5a5dd7fced73fc748697a *DESCRIPTION
+a3e7943abbbcfd5c1e0f65ce55d6ad9b *DESCRIPTION
 418c6aff5b8c604a10f84eeaa11ab6c4 *LICENSE
 7a3069f5c5b2626229f055132c138682 *NAMESPACE
 9e1e57f1f8412538e37a6118d8e7be58 *R/logger.R
-ec7c2afd68605a8c0a44c2c5db513e5c *R/pages.R
+e9d66fb899f74aa4d6ef2fde858a3530 *R/pages.R
 992967d78e20f8b62fd40c4da5071eb2 *R/paths.R
-e0fea4d84c900bd3a1bfd63f84e25d90 *R/router.R
-cd3bd4f6c582dd9eb4052e63d847f1b9 *R/zzz.R
-6fed3b41e3f707e990fd2cb872f70412 *README.md
+5e15445117eb4ffc23490188ad409e54 *R/router.R
+0e2ada8b52ece6d0f2fe2e0752cb3bfc *R/zzz.R
+17233a9cd7bc762b2c1f51e3e8631a71 *README.md
 6f4ea56d427f06616cb727f27e568416 *inst/prepare_package_cran.sh
 dac35cbb933d691f08d1217d86a75fe2 *inst/www/shiny.router.css
 623bb8d8ba823ce145a0bad6b56e072d *inst/www/shiny.router.js
