@@ -5,7 +5,7 @@
 \title{Internal function creating a router callback function.
 One need to call router callback with Shiny input and output in server code.}
 \usage{
-create_router_callback(root, routes)
+create_router_callback(root, routes = NULL)
 }
 \arguments{
 \item{root}{Main route to which all invalid routes should redirect.}
@@ -19,3 +19,4 @@ Router callback.
 Internal function creating a router callback function.
 One need to call router callback with Shiny input and output in server code.
 }
+\keyword{internal}

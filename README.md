@@ -1,10 +1,6 @@
-<a href = "https://appsilon.com/careers/" target="_blank"><img src="http://d2v95fjda94ghc.cloudfront.net/hiring.png" alt="We are hiring!"/></a>
+# shiny.router <a href="https://appsilon.github.io/shiny.router/"><img src="man/figures/shiny.router.png" align="right" alt="shiny.router logo" style="height: 140px;"></a>
 
-
-<img src="man/figures/shiny.router.png" align="right" alt="" width="150" />
-
-shiny.router
-============
+> _A minimalistic router for your Shiny apps._
 
 <!-- badges: start -->
 ![R-CMD-check](https://github.com/Appsilon/shiny.router/workflows/R-CMD-check/badge.svg)
@@ -13,29 +9,16 @@ shiny.router
 [![total](https://cranlogs.r-pkg.org/badges/grand-total/shiny.router)](https://CRAN.R-project.org/package=shiny.router)
 <!-- badges: end -->
 
-A minimalistic router for your [Shiny](https://shiny.rstudio.com/) apps.
-
 Now it's possible to recreate a state of your app, by providing a specific URL, like:
 
 ```r
-  make_router(
-    route("<your_app_url>/main",  mainPageShinyUI),
-    route("<your_app_url>/other", otherPageShinyUI)
-  )
+router_ui(
+  route("<your_app_url>/main",  mainPageShinyUI),
+  route("<your_app_url>/other", otherPageShinyUI)
+)
 ```
 
 <!-- TODO We would like to have a nice graphic explaning routing mechanism -->
-
-Basic tutorial article is available on [Appsilon's blog](https://appsilon.com/shiny-router-package/).
-
-
-<h4><a href="https://legacy.appsilon.com/apps/router2" target="_blank">Live demo</a> </h4>
-
-
-Source code
------------
-
-This library source code can be found on [Appsilon's](https://appsilon.com) Github: https://github.com/Appsilon/shiny.router
 
 How to install?
 ---------------
@@ -43,25 +26,19 @@ How to install?
 It's possible to install this library through CRAN
 
 ```r
-  install.packages("shiny.router")
+install.packages("shiny.router")
 ```
 
 The most recent version you can get from this repo using [remotes](https://github.com/r-lib/remotes).
 
 ```r
-  remotes::install_github("Appsilon/shiny.router")
+remotes::install_github("Appsilon/shiny.router")
 ```
 
-To install [previous version](https://github.com/Appsilon/shiny.router/blob/master/CHANGELOG.md) you can run:
-
-```r
-  remotes::install_github("Appsilon/shiny.router", ref = "0.1.0")
-```
-
-Example
+How to use it?
 -------
 
-Visit [examples](https://github.com/Appsilon/shiny.router/tree/master/examples) directory for some complete samples. Here's the basic usage:
+Basic usage:
 
 ```r
 library(shiny)
@@ -70,64 +47,54 @@ library(shiny.router)
 root_page <- div(h2("Root page"))
 other_page <- div(h3("Other page"))
 
-router <- make_router(
-  route("/", root_page),
-  route("other", other_page)
-)
-
 ui <- fluidPage(
   title = "Router demo",
-  router$ui
+  router_ui(
+    route("/", root_page),
+    route("other", other_page)
+  )
 )
 
 server <- function(input, output, session) {
-  router$server(input, output, session)
+  router_server()
 }
 
 shinyApp(ui, server)
 ```
+
+Check [the tutorial](https://appsilon.github.io/shiny.router/articles/basics.html) for more details on how to start using `shiny.router`.
+
+Examples
+-------
+
+An application that showcases the `shiny.router` features can be found [here](https://connect.appsilon.com/appsidex/#!/):
+
+<a href="https://connect.appsilon.com/appsidex/#!/" target="_blank"><img src="man/figures/router_demo/feature-multipage.gif"></a>
+
+It was built using two other Appsilon Open Source packages:
+
+- [`rhino`](https://appsilon.github.io/rhino/) - an R package designed to help building high quality, enterprise-grade Shiny applications at speed.
+- [`shiny.fluent`](https://appsilon.github.io/shiny.fluent/) - Microsoft's Fluent UI for Shiny apps.
+
+You can also visit [examples](https://github.com/Appsilon/shiny.router/tree/master/examples) directory for some complete samples.
 
 How to contribute?
 ------------------
 
 If you want to contribute to this project please submit a regular PR, once you're done with new feature or bug fix.
 
-Reporting a bug is also helpful - please use github issues and describe your problem as detailed as possible.
-
-**Changes in documentation**
-
-Documentation is rendered with `pkgdown`. Just run `pkgdown::build_site()` after editing documentation or `README.md`.
-
-Troubleshooting
----------------
-
-We used the latest versions of dependencies for this library, so please update your R environment before installation.
-
-However, if you encounter any problems, try the following:
-
-1.  Up-to-date R language environment
-2.  Installing specific dependent libraries versions
-    -   magrittr
-            ```r
-            install.packages("magrittr", version='1.5')
-            ```
-
-    -   shiny
-            ```r
-            install.packages("shiny", version='0.14.2.9001')
-            ```
-
-3.  Missing `shiny.semantic` dependency - one of our examples uses one of our others libraries, so please install it as well, when running that example. Repository: [shiny.semantic](https://github.com/Appsilon/shiny.semantic).
-
-Future enhacements
-------------------
-
-- customize loading full session or just visible part
+Reporting a bug is also helpful - please use [GitHub issues](https://github.com/Appsilon/shiny.router/issues) and describe your problem as detailed as possible.
 
 Appsilon
 ========
 
 <img src="https://avatars0.githubusercontent.com/u/6096772" align="right" alt="" width="6%" />
 
-Appsilon is the **Full Service Certified RStudio Partner**. Learn more
-at [appsilon.com](https://appsilon.com). Get in touch `support+opensource@appsilon.com`.
+Appsilon is a **Posit (formerly RStudio) Full Service Certified Partner**. Learn more
+at [appsilon.com](https://appsilon.com).
+
+Get in touch [opensource@appsilon.com](mailto:opensource@appsilon.com)
+
+Check our [Open Source tools](https://shiny.tools).
+
+<a href = "https://appsilon.com/careers/" target="_blank"><img src="http://d2v95fjda94ghc.cloudfront.net/hiring.png" alt="We are hiring!"/></a>
