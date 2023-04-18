@@ -1,7 +1,7 @@
 Package: shiny.router
 Type: Package
 Title: Basic Routing for Shiny Web Applications
-Version: 0.3.0
+Version: 0.3.1
 Authors@R: 
   c(
     person("Ryszard", "Szymański", email = "opensource+ryszard@appsilon.com", role = c("cre", "aut")),
@@ -20,11 +20,11 @@ URL: https://appsilon.github.io/shiny.router/,
 BugReports: https://github.com/Appsilon/shiny.router/issues
 Encoding: UTF-8
 License: MIT + file LICENSE
-Imports: htmltools, glue, shiny
+Imports: htmltools, glue, rlang, shiny
 RoxygenNote: 7.2.3
 Suggests: covr, lintr, rcmdcheck, spelling, testthat
 NeedsCompilation: no
-Packaged: 2023-02-24 11:00:53 UTC; kuba
+Packaged: 2023-04-18 07:43:57 UTC; kuba
 Author: Ryszard Szymański [cre, aut],
   Jakub Nowicki [aut],
   Filip Stachura [aut],
@@ -34,4 +34,4 @@ Author: Ryszard Szymański [cre, aut],
   Appsilon Sp. z o.o. [cph]
 Maintainer: Ryszard Szymański <opensource+ryszard@appsilon.com>
 Repository: CRAN
-Date/Publication: 2023-03-02 08:30:02 UTC
+Date/Publication: 2023-04-18 08:00:02 UTC
